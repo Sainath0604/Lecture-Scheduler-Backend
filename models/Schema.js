@@ -11,28 +11,33 @@ const userSchema = new mongoose.Schema(
     userType: { type: String, required: true },
   },
   {
-    collection: "user",
+    collection: "User",
   }
 );
-mongoose.model("user", userSchema);
+mongoose.model("User", userSchema);
 
 //Schema for course information
 
-const courseSchema = new mongoose.Schema({
-  cName: { type: String, required: true },
-  cLevel: { type: String, required: true },
-  cDescription: { type: String, required: true },
-  image: {
-    data: Buffer,
-    contentType: String,
-  },
-  lecture: [
-    {
-      id: { type: Number },
-      lectureName: { type: String },
-      time: { type: String },
+const courseSchema = new mongoose.Schema(
+  {
+    cName: { type: String, required: true },
+    cLevel: { type: String, required: true },
+    cDescription: { type: String, required: true },
+    image: {
+      data: Buffer,
+      contentType: String,
     },
-  ],
-});
+    lecture: [
+      {
+        id: { type: Number },
+        lectureName: { type: String },
+        time: { type: String },
+      },
+    ],
+  },
+  {
+    collection: "Course",
+  }
+);
 
-mongoose.model("course", courseSchema);
+mongoose.model("Course", courseSchema);
