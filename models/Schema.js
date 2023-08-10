@@ -21,8 +21,8 @@ mongoose.model("User", userSchema);
 const courseSchema = new mongoose.Schema(
   {
     cName: { type: String, required: true },
-    cLevel: { type: String, required: true },
-    cDescription: { type: String, required: true },
+    cLevel: { type: String },
+    cDescription: { type: String },
     image: {
       data: Buffer,
       contentType: String,
@@ -30,8 +30,8 @@ const courseSchema = new mongoose.Schema(
     lecture: [
       {
         id: { type: Number },
-        lectureName: { type: String },
-        time: { type: String },
+        lec_prof: { type: String },
+        lec_Time: { type: String },
       },
     ],
   },

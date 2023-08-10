@@ -124,7 +124,6 @@ app.post("/forgotPassword", async (req, res) => {
       : "http://localhost:5000";
 
     const link = `${resetPassUrl}/resetPassword/${oldUser._id}/${token}`;
-    console.log(link);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -227,5 +226,111 @@ app.post("/userData", async (req, res) => {
       });
   } catch (error) {
     res.send({ satus: "error" });
+  }
+});
+
+//Get All users API
+
+app.get("/getAllUser", async (req, res) => {
+  try {
+    const allUser = await User.find({});
+    res.send({ status: "ok", data: allUser });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// Delete user API
+
+app.post("/deleteUser", async (req, res) => {
+  const { userid } = req.body;
+  try {
+    await User.deleteOne({ _id: userid }),
+      function (err, res) {
+        console.log(err);
+      };
+    res.send({ status: "ok", data: "User deleted from database" });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// Edit user API
+
+app.post("/editUser", async (req, res) => {
+  const { userid, newfName, newlName, newEmail } = req.body;
+  try {
+    await User.updateOne(
+      { _id: userid },
+      { fName: newfName, lName: newlName, email: newEmail }
+    );
+    res.send({ status: "ok", data: "User information updated" });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .send({ status: "error", message: "Failed to update user information" });
+  }
+});
+
+//Importing course schema
+
+const Course = mongoose.model("Course");
+
+//Upload Course information API
+
+app.post("/uploadCourse", upload.single("course"), async (req, res) => {
+  try {
+    const { cName, cDescription, cLevel, lecture } = req.body;
+    const { buffer, mimetype } = req.file;
+    const lecturesArray = JSON.parse(lecture);
+
+    const newCourse = new Course({
+      cName,
+      cDescription,
+      cLevel,
+      lecture: lecturesArray,
+      image: {
+        data: buffer.toString("base64"),
+        contentType: mimetype,
+      },
+    });
+
+    await newCourse.save();
+
+    res.send({ status: "ok", data: "course uploaded successfully." });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send({ status: "error", message: "Failed to course Product." });
+  }
+});
+
+//Retrieve course information API
+
+app.get("/getCourseinfo", async (req, res) => {
+  try {
+    const courses = await Course.find();
+
+    const processedCourse = courses.map((course) => ({
+      _id: course._id,
+      cName: course.cName,
+      cDescription: course.cDescription,
+      cLevel: course.cLevel,
+      lecture: course.lecture,
+      image: {
+        contentType: course.image.contentType,
+        data: `data:${course.image.contentType};base64,${course.image.data}`,
+      },
+    }));
+
+    res.json(processedCourse);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      message: "Failed to retrieve course information.",
+    });
   }
 });
