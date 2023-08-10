@@ -48,7 +48,6 @@ const User = mongoose.model("User");
 //Register API
 
 app.post("/register", async (req, res) => {
-  console.log(req.body);
   const { fName, lName, email, password, userType } = req.body;
 
   const encryptedPassword = await bcrypt.hash(password, 10);
@@ -96,4 +95,137 @@ app.post("/login", async (req, res) => {
     }
   }
   res.json({ status: "error", error: "Invalid Credentials" });
+});
+
+// Forgot password API
+
+app.post("/forgotPassword", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const oldUser = await User.findOne({ email });
+    if (!oldUser) {
+      return res.json({ status: "User does not exists" });
+    } else {
+      res.json({
+        status:
+          "A link has been sent to your email, link will be activated for 5 minutes only",
+      });
+    }
+
+    const secret = JWT_secret + oldUser.password;
+    //^^made secret with JWT_SECRET and password
+    const token = jwt.sign({ email: oldUser.email, id: oldUser._id }, secret, {
+      expiresIn: "5m",
+    });
+    //^^created token with email, id and above secret which expires in 5min
+
+    const resetPassUrl = isProduction
+      ? process.env.BACKEND_URL
+      : "http://localhost:5000";
+
+    const link = `${resetPassUrl}/resetPassword/${oldUser._id}/${token}`;
+    console.log(link);
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: "youremail@gmail.com",
+      to: email,
+      subject: "Password reset ",
+      text: link,
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
+  } catch (error) {
+    // res.send({ status: "error" });
+    console.log(error);
+  }
+});
+
+// Reset password API (get)
+
+app.get("/resetPassword/:id/:token", async (req, res) => {
+  const { id, token } = req.params;
+  // console.log(req.params);
+  //verfy id
+  const oldUser = await User.findOne({ _id: id });
+  if (!oldUser) {
+    return res.json({ status: "User does not exists" });
+  }
+  const secret = JWT_secret + oldUser.password;
+  try {
+    const verify = jwt.verify(token, secret);
+    res.render("index", { email: verify.email, status: "verified" });
+  } catch (error) {
+    res.send("Not verified");
+    console.log(error);
+  }
+});
+
+// Reset password API (post)
+
+app.post("/resetPassword/:id/:token", async (req, res) => {
+  const { id, token } = req.params;
+  const { password } = req.body;
+  //verfy id
+  const oldUser = await User.findOne({ _id: id });
+  if (!oldUser) {
+    return res.json({ status: "User does not exists" });
+  }
+  const secret = JWT_secret + oldUser.password;
+  try {
+    const verify = jwt.verify(token, secret);
+    const encryptedPassword = await bcrypt.hash(password, 10);
+    await User.updateOne(
+      {
+        _id: id,
+      },
+      {
+        $set: {
+          password: encryptedPassword,
+        },
+      }
+    );
+    // res.json({ status: "Password updated" });
+
+    res.render("index", {
+      email: verify.email,
+      status: "verifiedWithUpdatedPass",
+    });
+  } catch (error) {
+    res.json({ status: "Something went wrong" });
+    console.log(error);
+  }
+});
+
+// User data API
+
+app.post("/userData", async (req, res) => {
+  const { token } = req.body;
+  try {
+    const user = jwt.verify(token, JWT_secret);
+    const userEmail = user.email;
+
+    User.findOne({ email: userEmail })
+      .then((data) => {
+        res.send({ staus: "ok", data: data });
+      })
+      .catch((error) => {
+        res.send({ status: "error", data: error });
+      });
+  } catch (error) {
+    res.send({ satus: "error" });
+  }
 });
