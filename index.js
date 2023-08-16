@@ -350,3 +350,38 @@ app.post("/deleteCourseInfo", async (req, res) => {
     res.send({ status: "error", data: "Failed to delete course Info" });
   }
 });
+
+// Edit product API
+
+app.post("/editCourseInfo", upload.single("course"), async (req, res) => {
+  const { courseId, cName, cDescription, cLevel, lecture } = req.body;
+
+  if (!courseId) {
+    return res
+      .status(400)
+      .send({ status: "error", message: "Invalid courseId." });
+  }
+
+  try {
+    let updateFields = { cName, cDescription, cLevel, lecture };
+
+    if (req.file) {
+      const { buffer, mimetype } = req.file;
+      updateFields.image = {
+        data: buffer.toString("base64"),
+        contentType: mimetype,
+      };
+    }
+
+    const updateQuery = updateFields.image
+      ? { $set: updateFields }
+      : updateFields;
+    await Course.updateOne({ _id: courseId }, updateQuery);
+    res.send({ status: "ok", data: "Course Info updated" });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .send({ status: "error", message: "Failed to update Course Info" });
+  }
+});
