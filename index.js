@@ -334,3 +334,19 @@ app.get("/getCourseinfo", async (req, res) => {
     });
   }
 });
+
+// Delete course information API
+
+app.post("/deleteCourseInfo", async (req, res) => {
+  const { courseId } = req.body;
+  try {
+    await Course.deleteOne({ _id: courseId }),
+      function (err, res) {
+        console.log(err);
+      };
+    res.send({ status: "ok", data: "course Info deleted" });
+  } catch (error) {
+    console.log(error);
+    res.send({ status: "error", data: "Failed to delete course Info" });
+  }
+});
