@@ -42,7 +42,7 @@ mongoose
   .catch((e) => console.log(e));
 
 //Importing User schema
-require("./models/Schema.js");
+require("./models/userModel");
 const User = mongoose.model("User");
 
 //Register API
@@ -351,7 +351,7 @@ app.post("/deleteCourseInfo", async (req, res) => {
   }
 });
 
-// Edit product API
+// Edit course API
 
 app.post("/editCourseInfo", upload.single("course"), async (req, res) => {
   const { courseId, cName, cDescription, cLevel, lecture } = req.body;
