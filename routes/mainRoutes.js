@@ -10,7 +10,7 @@ router.post("/forgotPassword", mainController.forgotPassword);
 router.get("/resetPassword/:id/:token", mainController.resetPasswordGet);
 router.post("/resetPassword/:id/:token", mainController.resetPasswordPost);
 router.post("/userData", mainController.userData);
-router.get("/getAllUsers", mainController.getAllUsers);
+router.get("/getAllUser", mainController.getAllUser);
 router.get("/deleteUser", mainController.deleteUser);
 router.get("/editUser", mainController.editUser);
 router.post(

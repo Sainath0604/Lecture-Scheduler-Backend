@@ -184,7 +184,7 @@ const mainController = {
     }
   },
 
-  getAllUsers: async (req, res) => {
+  getAllUser: async (req, res) => {
     try {
       const allUsers = await User.find({});
       res.json({ status: "ok", data: allUsers });
