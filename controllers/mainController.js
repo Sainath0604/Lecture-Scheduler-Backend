@@ -291,6 +291,7 @@ const mainController = {
 
   editCourseInfo: async (req, res) => {
     const { courseId, cName, cDescription, cLevel, lecture } = req.body;
+    console.log(req.body);
 
     if (!courseId) {
       return res
@@ -299,7 +300,7 @@ const mainController = {
     }
 
     try {
-      let updateFields = { cName, cDescription, cLevel, lecture };
+      let updateFields = { cName, cDescription, cLevel };
 
       if (req.file) {
         const { buffer, mimetype } = req.file;
@@ -309,11 +310,21 @@ const mainController = {
         };
       }
 
+      // Assuming `lecture` is an array of objects, loop through them to update
+      if (lecture && Array.isArray(lecture)) {
+        for (let i = 0; i < lecture.length; i++) {
+          const { lec_prof, lec_Time } = lecture[i];
+          updateFields[`lecture.${i}.lec_prof`] = lec_prof;
+          updateFields[`lecture.${i}.lec_Time`] = lec_Time;
+        }
+      }
+
       const updateQuery = updateFields.image
         ? { $set: updateFields }
         : updateFields;
       await Course.updateOne({ _id: courseId }, updateQuery);
       res.send({ status: "ok", data: "Course info updated" });
+      console.log(updateFields);
     } catch (error) {
       console.log(error);
       res
